@@ -1,0 +1,31 @@
+# Example application for Management Cluster
+# This file demonstrates how ArgoCD will apply manifests from this directory
+#
+# To deploy real applications:
+# 1. Replace this file with your Kubernetes manifests
+# 2. ArgoCD will automatically detect and apply changes
+# 3. Configure additional ArgoCD Applications as needed
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: management-cluster-config
+  namespace: default
+data:
+  cluster-type: "management"
+  purpose: "This is an example configuration for the Management Cluster"
+  next-steps: |
+    Replace this example with your actual applications:
+    - HyperShift Operator
+    - cert-manager
+    - external-dns
+    - OpenTelemetry
+    - ArgoCD Apps (App of Apps pattern)
+
+---
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: rosa-management
+  labels:
+    cluster-type: management

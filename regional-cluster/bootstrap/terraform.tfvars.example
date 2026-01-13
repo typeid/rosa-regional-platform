@@ -1,0 +1,21 @@
+# =============================================================================
+# Regional Cluster Configuration Example
+# =============================================================================
+# Copy this file to terraform.tfvars and customize for your environment
+
+# Required Configuration
+cluster_name = "rosa-regional-us-west-2"
+aws_profile  = "regional-cluster-profile"  # Your AWS CLI profile name
+region       = "us-west-2"
+
+# Optional Overrides (uncomment to customize)
+# node_instance_type = "t3.medium"
+# node_desired_size  = 2
+
+# Custom Tags (optional)
+common_tags = {
+  Project     = "ROSA-Regional-Platform"
+  Environment = "dev"
+  ManagedBy   = "Terraform"
+  Owner       = "your-team@company.com"
+}
