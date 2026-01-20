@@ -98,6 +98,11 @@ spec:
         redis:
           secretInit:
             enabled: false
+          # Explicitly disable secret init resources to prevent conflicts
+          serviceAccount:
+            create: false
+          rbac:
+            create: false
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
@@ -117,9 +122,19 @@ spec:
         factor: 2
         maxDuration: 3m
 
-  # Ignore status differences to prevent sync loops
+  # Ignore differences to prevent sync loops and conflicts
   ignoreDifferences:
     - group: argoproj.io
       kind: Application
       jsonPointers:
         - /status
+    # Ignore Redis secret init RBAC resources from bootstrap
+    - group: rbac.authorization.k8s.io
+      kind: Role
+      name: argocd-redis-secret-init
+    - group: rbac.authorization.k8s.io
+      kind: RoleBinding
+      name: argocd-redis-secret-init
+    - group: ""
+      kind: ServiceAccount
+      name: argocd-redis-secret-init
