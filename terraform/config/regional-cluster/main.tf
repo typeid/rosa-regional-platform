@@ -19,11 +19,6 @@ module "regional_cluster" {
 
   # Required variables
   cluster_type = "regional"
-
-  # Regional cluster sizing
-  node_group_min_size     = 1
-  node_group_max_size     = 2
-  node_group_desired_size = 1
 }
 
 # Call the ECS bootstrap module for external bootstrap execution
