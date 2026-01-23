@@ -13,7 +13,7 @@ spec:
   source:
     repoURL: https://argoproj.github.io/argo-helm
     chart: argo-cd
-    targetRevision: "{{ .Values.argocd_chart_version | quote }}"
+    targetRevision: "{{ .Values.argocd_chart_version }}"
     helm:
       valuesObject:
         ha:

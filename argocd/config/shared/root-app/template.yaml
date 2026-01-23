@@ -5,26 +5,26 @@ metadata:
   namespace: argocd
   labels:
     argocd.argoproj.io/instance: root
-    environment: "{{ .Values.environment | quote }}"
-    sector: "{{ .Values.sector | quote }}"
-    region: "{{ .Values.region | quote }}"
-    cluster_type: "{{ .Values.cluster_type | quote }}"
+    environment: "{{ .Values.environment }}"
+    sector: "{{ .Values.sector }}"
+    region: "{{ .Values.region }}"
+    cluster_type: "{{ .Values.cluster_type }}"
   annotations:
     argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   source:
-    repoURL: "{{ .Values.git_repo | quote }}"
-    targetRevision: "{{ .Values.git_revision | quote }}"
-    path: argocd/rendered/{{ .Values.cluster_type }}/{{ .Values.environment }}/{{ .Values.sector }}/{{ .Values.region }}
+    repoURL: "{{ .Values.git_repo }}"
+    targetRevision: "{{ .Values.git_revision }}"
+    path: argocd/rendered/{{ .Values.cluster_type }}-cluster/{{ .Values.environment }}/{{ .Values.sector }}/{{ .Values.region }}
     helm:
       valuesObject:
-        environment: "{{ .Values.environment | quote }}"
-        sector: "{{ .Values.sector | quote }}"
-        region: "{{ .Values.region | quote }}"
-        git_repo: "{{ .Values.git_repo | quote }}"
-        git_revision: "{{ .Values.git_revision | quote }}"
-        cluster_type: "{{ .Values.cluster_type | quote }}"
+        environment: "{{ .Values.environment }}"
+        sector: "{{ .Values.sector }}"
+        region: "{{ .Values.region }}"
+        git_repo: "{{ .Values.git_repo }}"
+        git_revision: "{{ .Values.git_revision }}"
+        cluster_type: "{{ .Values.cluster_type }}"
   destination:
     server: https://kubernetes.default.svc
     namespace: argocd
