@@ -1,6 +1,6 @@
 environment: ''
 sector: ''
-region: ''
+region: eu-west-2
 git_repo: ''
 git_revision: main
 cluster_type: ''
