@@ -2,6 +2,9 @@
 # Regional Cluster Infrastructure Configuration
 # =============================================================================
 
+# Get current AWS region for auto-detection
+data "aws_region" "current" {}
+
 # Configure AWS provider
 provider "aws" {
   default_tags {

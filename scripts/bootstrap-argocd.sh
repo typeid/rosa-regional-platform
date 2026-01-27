@@ -3,28 +3,37 @@
 set -euo pipefail
 
 CLUSTER_TYPE="${1:-}"
+ENVIRONMENT="${2:-integration}"
+SECTOR="${3:-dev}"
+REGION="${3:-$(aws configure get region)}"  # default to AWS CLI configured region
 
 if [[ -z "$CLUSTER_TYPE" ]]; then
-    echo "Usage: $0 <cluster-type>"
+    echo "Usage: $0 <cluster-type> [environment] [region]"
     echo "       cluster-type: management or regional"
+    echo "       environment: dev, staging, prod, etc. (default: integration)"
+    echo "       sector: canary, dev, etc. (default: dev)"
+    echo "       region: AWS region (default: current AWS CLI region)"
     echo ""
     echo "This script automatically reads terraform.tfvars to extract AWS profile"
     echo "and calls bootstrap-argocd.sh with the correct parameters."
     exit 1
 fi
 
+RENDERED_DIR="argocd/rendered/${ENVIRONMENT}/${SECTOR}/${REGION}/"
+if [[ ! -d "$RENDERED_DIR" || -z "$(ls -A "$RENDERED_DIR" 2>/dev/null)" ]]; then
+    echo "⚠ WARNING: The rendered manifests directory '$RENDERED_DIR' is empty."
+    echo "  ArgoCD will not have any values to deploy resources."
+    echo "  Please run './argocd/scripts/render.py' after updating '/argocd/config.yaml' for this shard and push the changes to your target branch."
+    
+    read -p "Do you want to continue anyway? [y/N]: " confirm
+    confirm=$(echo "$confirm" | tr '[:upper:]' '[:lower:]')  # convert to lowercase
+    if [[ "$confirm" != "y" && "$confirm" != "yes" ]]; then
+        echo "Exiting."
+        exit 1
+    fi
+fi
+
 TERRAFORM_DIR="terraform/config/${CLUSTER_TYPE}-cluster"
-
-# Determine repository path based on cluster type
-case "$CLUSTER_TYPE" in
-    "management")
-        REPOSITORY_PATH="argocd/management-cluster"
-        ;;
-    "regional")
-        REPOSITORY_PATH="argocd/regional-cluster"
-        ;;
-esac
-
 
 # Read terraform outputs
 cd ${TERRAFORM_DIR}/
@@ -39,6 +48,10 @@ BOOTSTRAP_SECURITY_GROUP=$(echo "$OUTPUTS" | jq -r '.bootstrap_security_group_id
 LOG_GROUP=$(echo "$OUTPUTS" | jq -r '.bootstrap_log_group_name.value')
 REPOSITORY_URL=$(echo "$OUTPUTS" | jq -r '.repository_url.value')
 REPOSITORY_BRANCH=$(echo "$OUTPUTS" | jq -r '.repository_branch.value')
+REGION=$(echo "$OUTPUTS" | jq -r '.region.value')
+
+# Static values
+APPLICATIONSET_PATH="argocd/applicationset/"
 
 echo "Bootstrapping ArgoCD on cluster: $CLUSTER_NAME"
 
@@ -54,10 +67,13 @@ RUN_TASK_OUTPUT=$(aws ecs run-task \
       \"name\": \"bootstrap\",
       \"environment\": [
         {\"name\": \"CLUSTER_NAME\", \"value\": \"$CLUSTER_NAME\"},
-        {\"name\": \"ARGOCD_VERSION\", \"value\": \"9.3.4\"},
         {\"name\": \"REPOSITORY_URL\", \"value\": \"$REPOSITORY_URL\"},
-        {\"name\": \"REPOSITORY_PATH\", \"value\": \"$REPOSITORY_PATH\"},
-        {\"name\": \"REPOSITORY_BRANCH\", \"value\": \"$REPOSITORY_BRANCH\"}
+        {\"name\": \"REPOSITORY_PATH\", \"value\": \"$APPLICATIONSET_PATH\"},
+        {\"name\": \"REPOSITORY_BRANCH\", \"value\": \"$REPOSITORY_BRANCH\"},
+        {\"name\": \"ENVIRONMENT\", \"value\": \"$ENVIRONMENT\"},
+        {\"name\": \"SECTOR\", \"value\": \"$SECTOR\"},
+        {\"name\": \"REGION\", \"value\": \"$REGION\"},
+        {\"name\": \"CLUSTER_TYPE\", \"value\": \"$CLUSTER_TYPE\"}
       ]
     }]
   }" 2>&1)
